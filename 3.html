@@ -8,13 +8,34 @@
 <body>
   <h1><a href="index.html">WEB</a></h1>
   <!--JavaScript 이용 -->
+  <!-- 다크모드/ 라이트 모드 -->
+  <!-- 버튼이 night 일때 다크모드로 바뀌고 버튼 value는 day로 바꾼다 -->
   <input type="button" value="night" onClick="
-  document.querySelector('body').style.backgroundColor='black';
-  document.querySelector('body').style.color='white';
-  ">
-  <input type="button" value="day" onClick="
-  document.querySelector('body').style.backgroundColor='white';
-  document.querySelector('body').style.color='black';
+  <!-- 중복제거 -->
+    var target = document.querySelector('body');
+    if(this.value ==='night'){
+      target.style.backgroundColor='black';
+      target.style.color='white';
+      this.value='day';
+
+      var links=document.querySelectorAll('a');
+      var i=0;
+      while(i<links.length){
+        links[i].style.color='powderblue';
+        i=i+1;
+      }
+    }
+    else{
+      target.style.backgroundColor='white';
+      target.style.color='black';
+      this.value='night';
+      var links=document.querySelectorAll('a');
+      var i=0;
+      while(i<links.length){
+        links[i].style.color='blue';
+        i=i+1;
+      }
+    }
   ">
   <div id="grid">
   <ol>
