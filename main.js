@@ -9,46 +9,21 @@ var app = http.createServer(function (request, response) {
 
   if (pathname === "/") {
     if (queryData.id === undefined) {
-      var title = "Welcome";
-      var description = "Hello, Node.js";
-      var template = `<!DOCTYPE html>
-        <html>
-          <head>
-            <title>WEB1-html</title>
-            <meta charset="utf-8" />
-            <link rel="stylesheet" href="style.css" />
-          </head>
-          <body>
-            <h1>
-              <a href="/"><font color="lightblue">WEB</font></a>
-            </h1>
-            <div id="grid">
-              <ol>
-                <li>
-                  <a href="/?id=HTML"><font color="blue">HTML</font></a>
-                </li>
-                <li>
-                  <a href="/?id=CSS"><font color="blue">CSS</font></a>
-                </li>
-                <li>
-                  <a href="/?id=JavaScript"><font color="blue">JavaScript</font></a>
-                </li>
-              </ol>
-              <div id="article">
-                <h2>${title}</h2>
-                <p>
-                  ${description}
-                </p>
-              </div>
-            </div>
-          </body>
-        </html>
-        `;
-      response.writeHead(200);
-      response.end(template);
-    } else {
-      var title = queryData.id;
-      fs.readFile(`data/${queryData.id}`, "utf8", function (err, description) {
+      fs.readdir("./data", function (err, filelist) {
+        var title = "Welcome";
+        var description = "Hello, Node.js";
+        var list = "<ul>";
+        var i = 0;
+        while (i < filelist.length) {
+          list =
+            list +
+            `<li>
+            <a href="/?id=${filelist[i]}"><font color="blue">${filelist[i]}</font></a>
+                </li>`;
+          i += 1;
+        }
+        list = list + "</ul>";
+
         var template = `<!DOCTYPE html>
         <html>
           <head>
@@ -61,17 +36,7 @@ var app = http.createServer(function (request, response) {
               <a href="/"><font color="lightblue">WEB</font></a>
             </h1>
             <div id="grid">
-              <ol>
-                <li>
-                  <a href="/?id=HTML"><font color="blue">HTML</font></a>
-                </li>
-                <li>
-                  <a href="/?id=CSS"><font color="blue">CSS</font></a>
-                </li>
-                <li>
-                  <a href="/?id=JavaScript"><font color="blue">JavaScript</font></a>
-                </li>
-              </ol>
+              ${list}
               <div id="article">
                 <h2>${title}</h2>
                 <p>
@@ -84,6 +49,53 @@ var app = http.createServer(function (request, response) {
         `;
         response.writeHead(200);
         response.end(template);
+      });
+    } else {
+      fs.readdir("./data", function (err, filelist) {
+        var list = "<ul>";
+        var i = 0;
+        while (i < filelist.length) {
+          list =
+            list +
+            `<li>
+            <a href="/?id=${filelist[i]}"><font color="blue">${filelist[i]}</font></a>
+                </li>`;
+          i += 1;
+        }
+        list = list + "</ul>";
+
+        var title = queryData.id;
+        fs.readFile(
+          `data/${queryData.id}`,
+          "utf8",
+          function (err, description) {
+            var template = `<!DOCTYPE html>
+        <html>
+          <head>
+            <title>WEB1-html</title>
+            <meta charset="utf-8" />
+            <link rel="stylesheet" href="style.css" />
+          </head>
+          <body>
+            <h1>
+              <a href="/"><font color="lightblue">WEB</font></a>
+            </h1>
+            <div id="grid">
+              ${list}
+              <div id="article">
+                <h2>${title}</h2>
+                <p>
+                  ${description}
+                </p>
+              </div>
+            </div>
+          </body>
+        </html>
+        `;
+            response.writeHead(200);
+            response.end(template);
+          }
+        );
       });
     }
   } else {
