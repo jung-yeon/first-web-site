@@ -2,6 +2,10 @@ var http = require("http");
 var fs = require("fs");
 var url = require("url");
 var qs = require("querystring");
+
+var template = require("./lib/template.js");
+var path = require("path");
+
 var app = http.createServer(function (request, response) {
   var _url = request.url;
   //url을 분석하는 코드
@@ -13,63 +17,62 @@ var app = http.createServer(function (request, response) {
       fs.readdir("./data", function (err, filelist) {
         var title = "Welcome";
         var description = "Hello, Node.js";
-        var list = templateList(filelist);
-        response.writeHead(200);
-        response.end(
-          templateHTML(list, title, description, `<a href="/create">create</a>`)
+        var list = template.list(filelist);
+        var html = template.html(
+          list,
+          title,
+          description,
+          `<a href="/create">create</a>`
         );
+        response.writeHead(200);
+        response.end(html);
       });
     } else {
       fs.readdir("./data", function (err, filelist) {
-        var list = templateList(filelist);
+        var list = template.list(filelist);
         var title = queryData.id;
-        fs.readFile(
-          `data/${queryData.id}`,
-          "utf8",
-          function (err, description) {
-            response.writeHead(200);
-            response.end(
-              templateHTML(
-                list,
-                title,
-                description,
-                `<a href="/create">create</a>
-                 <a href="/update?id=${title}">update</a>
-                 <form action="delete_process" method="post">
-                  <input type="hidden" name="id" value=${title}>
-                  <input type="submit" value="delete">
-                </form>`
-              )
-            );
-          }
-        );
+        var filteredId = path.parse(queryData.id).base;
+        fs.readFile(`data/${filteredId}`, "utf8", function (err, description) {
+          var html = template.html(
+            list,
+            title,
+            description,
+            `<a href="/create">create</a>
+               <a href="/update?id=${title}">update</a>
+               <form action="delete_process" method="post">
+                <input type="hidden" name="id" value=${title}>
+                <input type="submit" value="delete">
+              </form>`
+          );
+          response.writeHead(200);
+          response.end(html);
+        });
       });
     }
   } else if (pathname === "/create") {
     fs.readdir("./data", function (err, filelist) {
       var title = "WEB - create";
-      var list = templateList(filelist);
-      response.writeHead(200);
-      response.end(
-        templateHTML(
-          list,
-          title,
-          `
-        <form action="/create_process" method="post">
-          <p><input type="text" name="title" placeholder="title"/></p>
-          <p>
-            <!-- 여러 줄 입력 -->
-            <textarea name="description" placeholder="description"></textarea>
-          </p>
-          <p>
-            <input type="submit" />
-          </p>
-        </form>
+      var list = template.list(filelist);
+      var html = template.html(
+        list,
+        title,
+        `
+      <form action="/create_process" method="post">
+        <p><input type="text" name="title" placeholder="title"/></p>
+        <p>
+          <!-- 여러 줄 입력 -->
+          <textarea name="description" placeholder="description"></textarea>
+        </p>
+        <p>
+          <input type="submit" />
+        </p>
+      </form>
 
-      `,
-          ""
-        )
+    `,
+        ""
       );
+      response.writeHead(200);
+      response.end(html);
     });
   } else if (pathname === "/create_process") {
     var body = "";
@@ -88,10 +91,11 @@ var app = http.createServer(function (request, response) {
     });
   } else if (pathname === "/update") {
     fs.readdir("./data", function (err, filelist) {
-      fs.readFile(`data/${queryData.id}`, "utf8", function (err, description) {
-        var list = templateList(filelist);
+      var filteredId = path.parse(queryData.id).base;
+      fs.readFile(`data/${filteredId}`, "utf8", function (err, description) {
+        var list = template.list(filelist);
         var title = queryData.id;
-        var template = templateHTML(
+        var html = template.html(
           list,
           title,
           `<form action="/update_process" method="post">
@@ -114,7 +118,7 @@ var app = http.createServer(function (request, response) {
            </form>`
         );
         response.writeHead(200);
-        response.end(template);
+        response.end(html);
       });
     });
   } else if (pathname === "/update_process") {
@@ -154,48 +158,4 @@ var app = http.createServer(function (request, response) {
   }
 });
 
-//HTML 본문 함수
-function templateHTML(list, title, body, control) {
-  var template = `<!DOCTYPE html>
-        <html>
-          <head>
-            <title>WEB-${title}</title>
-            <meta charset="utf-8" />
-            <link rel="stylesheet" href="style.css" />
-          </head>
-          <body>
-            <h1>
-              <a href="/"><font color="lightblue">WEB</font></a>
-            </h1>
-            <div id="grid">
-              ${list}
-              ${control}
-              <div id="article">
-                <h2>${title}</h2>
-                <p>
-                  ${body}
-                </p>
-              </div>
-            </div>
-          </body>
-        </html>
-        `;
-  return template;
-}
-
-//본문 전 list 함수
-function templateList(filelist) {
-  var list = "<ul>";
-  var i = 0;
-  while (i < filelist.length) {
-    list =
-      list +
-      `<li>
-            <a href="/?id=${filelist[i]}"><font color="blue">${filelist[i]}</font></a>
-                </li>`;
-    i += 1;
-  }
-  list = list + "</ul>";
-  return list;
-}
 app.listen(3000);
