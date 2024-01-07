@@ -6,6 +6,8 @@ var qs = require("querystring");
 var template = require("./lib/template.js");
 var path = require("path");
 
+var sanitizehtml = require("sanitize-html");
+
 var app = http.createServer(function (request, response) {
   var _url = request.url;
   //url을 분석하는 코드
@@ -29,18 +31,22 @@ var app = http.createServer(function (request, response) {
       });
     } else {
       fs.readdir("./data", function (err, filelist) {
-        var list = template.list(filelist);
-        var title = queryData.id;
         var filteredId = path.parse(queryData.id).base;
         fs.readFile(`data/${filteredId}`, "utf8", function (err, description) {
+          var list = template.list(filelist);
+          var title = queryData.id;
+          var sanitizedTitle = sanitizehtml(title);
+          var sanitizedDescription = sanitizehtml(description, {
+            allowedTags: ["h1"],
+          });
           var html = template.html(
             list,
-            title,
-            description,
+            sanitizedTitle,
+            sanitizedDescription,
             `<a href="/create">create</a>
-               <a href="/update?id=${title}">update</a>
+               <a href="/update?id=${sanitizedTitle}">update</a>
                <form action="delete_process" method="post">
-                <input type="hidden" name="id" value=${title}>
+                <input type="hidden" name="id" value=${sanitizedTitle}>
                 <input type="submit" value="delete">
               </form>`
           );
